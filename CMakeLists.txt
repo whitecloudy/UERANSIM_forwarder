@@ -15,4 +15,15 @@ add_subdirectory(src/asn/rrc)
 add_subdirectory(src/asn/ngap)
 add_subdirectory(src/lib)
 
+#################### GNB EXECUTABLE ####################
+
+add_executable(main src/main.cpp)
+
+target_compile_options(main PRIVATE -ggdb -Wall -Wextra -pedantic)
+
+target_link_libraries(main pthread)
+target_link_libraries(main asn-rrc)
+target_link_libraries(main asn-ngap)
+target_link_libraries(main common-lib)
+
 

@@ -108,6 +108,27 @@ uint16_t InetAddress::getPort() const
     return 0;
 }
 
+std::string InetAddress::getAddr() const
+{
+    char str[INET6_ADDRSTRLEN];
+    if (storage.ss_family == AF_INET)
+    {
+        auto &sin = reinterpret_cast<const sockaddr_in &>(storage);
+        return inet_ntop(AF_INET, &(sin.sin_addr), str, INET_ADDRSTRLEN);
+    }
+    else if (storage.ss_family == AF_INET6)
+    {
+        auto &sin6 = reinterpret_cast<const sockaddr_in6 &>(storage);
+        return inet_ntop(AF_INET6, &(sin6.sin6_addr), str, INET6_ADDRSTRLEN);
+    }
+    return NULL;
+}
+
+bool InetAddress::operator==(const struct InetAddress addr)
+{
+  return (this->getAddr() == addr.getAddr())&&(this->getPort() == addr.getPort());
+}
+
 Socket::Socket(int domain, int type, int protocol)
 {
     int sd = socket(domain, type, protocol);
@@ -285,6 +306,21 @@ void Socket::setReuseAddress() const
     int reuse = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuse, sizeof(reuse)) < 0)
         throw LibError("setsockopt SO_REUSEADDR failed: ", errno);
+}
+
+int Socket::getfd() const
+{
+  return this->fd;
+}
+
+bool Socket::operator==(const Socket &sock)
+{
+  return this->fd == sock.getfd();
+}
+
+bool Socket::operator!=(const Socket &sock)
+{
+  return this->fd != sock.getfd();
 }
 
 InetAddress Socket::getAddress() const

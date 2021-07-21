@@ -39,7 +39,11 @@ struct InetAddress
     }
 
     [[nodiscard]] uint16_t getPort() const;
+    [[nodiscard]] std::string getAddr() const;
+
+    bool operator==(const struct InetAddress addr);
 };
+
 
 class Socket
 {
@@ -61,6 +65,8 @@ class Socket
     /* Socket options */
     void setReuseAddress() const;
 
+    int getfd() const;
+
   public:
     static Socket CreateAndBindUdp(const InetAddress &address);
     static Socket CreateAndBindTcp(const InetAddress &address);
@@ -76,4 +82,9 @@ class Socket
                          int timeout = 0);
 
     static bool Select(const Socket &socket, int timeout = 0);
+
+    bool operator==(const Socket &sock);
+    bool operator!=(const Socket &sock);
 };
+
+
