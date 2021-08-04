@@ -14,6 +14,8 @@ add_subdirectory(src/asn/asn1c)
 add_subdirectory(src/asn/rrc)
 add_subdirectory(src/asn/ngap)
 add_subdirectory(src/lib)
+add_subdirectory(src/tester)
+
 
 #################### GNB EXECUTABLE ####################
 
@@ -25,5 +27,4 @@ target_link_libraries(main pthread)
 target_link_libraries(main asn-rrc)
 target_link_libraries(main asn-ngap)
 target_link_libraries(main common-lib)
-
-
+target_link_libraries(main tester)
