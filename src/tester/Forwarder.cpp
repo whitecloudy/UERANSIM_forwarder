@@ -6,9 +6,20 @@
 #include <utils/octet_view.hpp>
 #include <lib/rrc/rrc.hpp>
 
+
+
+#include <lib/rrc/encode.hpp>
+#include <asn/rrc/ASN_RRC_RRCReject.h>
+#include <asn/rrc/ASN_RRC_RRCSetup.h>
+#include <asn/rrc/ASN_RRC_UL-CCCH-Message.h>
+#include <asn/rrc/ASN_RRC_UL-DCCH-Message.h>
+
+
 const unsigned int BUFSIZE = 0x1000000;
 
 int Forwarder::addr_n_sock::ID_cur = 0;
+
+
 
 Forwarder::Forwarder(const std::string GNB_IP,
                      const uint16_t GNB_PORT,
@@ -158,8 +169,10 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
     }
 
     rt_size = data_size;
+    std::cout<<"\n\n";
     return 0;
 }
+
 
 
 int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint8_t rt_buf[], int& rt_size)
@@ -183,24 +196,103 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                 {
                     std::cout << "It is RRC" << std::endl;
                     rrc::RrcChannel channel = static_cast<rrc::RrcChannel>(m.payload);
+                    OctetString rrcPdu  = std::move(m.pdu);
+                                    
                     switch(channel)
                     {
                         case rrc::RrcChannel::BCCH_BCH:
-                        case rrc::RrcChannel::BCCH_DL_SCH:
-                            std::cout << "BCCH"<<std::endl;
+                          {
+                            auto *pdu = rrc::encode::Decode<ASN_RRC_BCCH_BCH_Message>(asn_DEF_ASN_RRC_BCCH_BCH_Message, rrcPdu);
+                            if (pdu->message.present == ASN_RRC_BCCH_BCH_MessageType_PR_mib)
+                              std::cout<<"Receive Mib, CH: BCCH_BCH"<<std::endl;
                             break;
-                        case rrc::RrcChannel::DL_CCCH:
+                          }
+                        case rrc::RrcChannel::BCCH_DL_SCH:
+                          {
+                            auto *pdu = rrc::encode::Decode<ASN_RRC_BCCH_DL_SCH_Message>(asn_DEF_ASN_RRC_BCCH_DL_SCH_Message, rrcPdu);
+                            if (pdu->message.present != ASN_RRC_BCCH_DL_SCH_MessageType_PR_c1)
+                              break;
+                            auto &c1 = pdu->message.choice.c1;
+                            switch (c1->present)
+                            {
+                              case ASN_RRC_BCCH_DL_SCH_MessageType__c1_PR_systemInformationBlockType1:
+                                std::cout << "Receive Sib1, CH: BCCH_DL_SCH"<<std::endl;
+                                break;
+                              default:
+                                break;
+                            } 
+                            break;
+                         }                           
+                        case rrc::RrcChannel::DL_CCCH:                            
+                            {
+                              auto *pdu = rrc::encode::Decode<ASN_RRC_DL_CCCH_Message>(asn_DEF_ASN_RRC_DL_CCCH_Message, rrcPdu);
+                              if (pdu->message.present != ASN_RRC_DL_CCCH_MessageType_PR_c1)
+                                break;
+
+                              auto &c1 = pdu->message.choice.c1;
+                              switch (c1->present)
+                              {
+                              case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcReject:
+                                std::cout<<"Receive RRC Reject ";                         
+                                break;
+                              case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcSetup:                              
+                                std::cout<<"Receive RRC Setup ";
+                                break;
+                              case ASN_RRC_DL_DCCH_MessageType__c1_PR_dlInformationTransfer:
+                                std::cout<<"Receive DownLink Information Transfer ";                             
+                                break;
+                              case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:
+                                std::cout<<"Receive RRC Release ";                                
+                                break;
+                              default:
+                                break;
+                              }
+
+                              std::cout<< "CH: DL_CCCH"<<std::endl;
+                              break;
+                           }
                         case rrc::RrcChannel::UL_CCCH:
                         case rrc::RrcChannel::UL_CCCH1:
-                            std::cout << "CCCH" <<std::endl;
                             break;
                         case rrc::RrcChannel::DL_DCCH:
+                            {
+                              auto *pdu = rrc::encode::Decode<ASN_RRC_DL_DCCH_Message>(asn_DEF_ASN_RRC_DL_DCCH_Message, rrcPdu);
+                              auto &c1 = pdu->message.choice.c1;
+                                switch (c1->present)
+                                {
+                                 case ASN_RRC_DL_DCCH_MessageType__c1_PR_dlInformationTransfer:                                   
+                                   std::cout<<"Receive DownLink Information Transfer ";
+                                   break;                                   
+                                 case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:                                   
+                                   std::cout<<"Receive RRC Release ";
+                                   break;                                   
+                                 default:
+                                   break;                               
+                                }
+                                std::cout<<"CH: DL_DCCH"<<std::endl;
+                                break;
+                             }
                         case rrc::RrcChannel::UL_DCCH:
-                            std::cout << "DCCH"<<std::endl;
                             break;
                         case rrc::RrcChannel::PCCH:
-                            std::cout << "PCCH"<<std::endl;
-                            break;
+                            {
+                              auto *pdu = rrc::encode::Decode<ASN_RRC_PCCH_Message>(asn_DEF_ASN_RRC_PCCH_Message, rrcPdu);
+
+                              if (pdu->message.present != ASN_RRC_PCCH_MessageType_PR_c1)
+                                break;
+
+                              auto &c1 = pdu->message.choice.c1;
+                              switch (c1->present)
+                              {
+                              case ASN_RRC_PCCH_MessageType__c1_PR_paging:                                
+                                std::cout<<"Receive Paging ";
+                                break;                                
+                              default:
+                                break;
+                              }
+                              std::cout << "CH: PCCH"<<std::endl;
+                              break;
+                            }
                         default:
                             std::cout << "What???"<<std::endl;
                     }
@@ -219,7 +311,7 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
         default:
             std::cout << "Why default?" <<std::endl;
     }
-
+    std::cout<<"\n\n";
     rt_size = data_size;
     return 0;
 }
