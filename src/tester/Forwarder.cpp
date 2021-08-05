@@ -124,31 +124,116 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
                 std::cout << "PDU transmission"<<std::endl;
                 
                 rls::RlsMessage &ref_msg = *msg;
-                auto &m = (rls::RlsPduTransmission &)ref_msg;
+                auto &m = (rls::RlsPduTransmission &)ref_msg;                
+
                 if (m.pduType == rls::EPduType::DATA)
-                    std::cout << "It is DATA"<<std::endl;
+                    std::cout << "DATA Message"<<std::endl;
                 else if (m.pduType == rls::EPduType::RRC)
                 {
-                    std::cout << "It is RRC" << std::endl;
+                    std::cout << "RRC Message" << std::endl;
                     rrc::RrcChannel channel = static_cast<rrc::RrcChannel>(m.payload);
+                    OctetString rrcPdu  = std::move(m.pdu);
+
                     switch(channel)
                     {
-                        case rrc::RrcChannel::BCCH_BCH:
-                        case rrc::RrcChannel::BCCH_DL_SCH:
-                            std::cout << "BCCH"<<std::endl;
+                        case rrc::RrcChannel::BCCH_BCH:                        
+                          {
+                          auto *pdu = rrc::encode::Decode<ASN_RRC_BCCH_BCH_Message>(asn_DEF_ASN_RRC_BCCH_BCH_Message, rrcPdu);
+                          std::cout<< "UERANSIM Not Yet, CH: BCCH_BCH"<<std::endl;
+                          break;                          
+                          }
+                        case rrc::RrcChannel::BCCH_DL_SCH:                                                 
+                          break;                          
+                        case rrc::RrcChannel::DL_CCCH:                          
+                          break;
+                          
+                        case rrc::RrcChannel::UL_CCCH:                         
+                          { 
+                          auto *pdu = rrc::encode::Decode<ASN_RRC_UL_CCCH_Message>(asn_DEF_ASN_RRC_UL_CCCH_Message, rrcPdu);
+                          if (pdu->message.present != ASN_RRC_UL_CCCH_MessageType_PR_c1)
+                             break;
+
+                          auto &c1 = pdu->message.choice.c1;
+                          switch (c1->present)
+                          {
+                          case ASN_RRC_UL_CCCH_MessageType__c1_PR_NOTHING:
                             break;
-                        case rrc::RrcChannel::DL_CCCH:
-                        case rrc::RrcChannel::UL_CCCH:
-                        case rrc::RrcChannel::UL_CCCH1:
-                            std::cout << "CCCH" <<std::endl;
+                          case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcSetupRequest:
+                            std::cout<<"Receive RRC Setup Request, ";                            
                             break;
+                          case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcResumeRequest:
+                            std::cout<<"Receive RRC Resume Request, ";
+                            break; // todo
+                          case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcReestablishmentRequest:
+                            std::cout<<"Receive RRC Reestablishment Request, ";
+                            break; // todo
+                          case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcSystemInfoRequest:
+                            std::cout<<"Receive RRC System Info Request, ";
+                            break; // todo
+                          }
+                          std::cout<<"CH: UL_CCCH"<<std::endl;
+                          break;
+                          }
+                        case rrc::RrcChannel::UL_CCCH1:                         
+                          { 
+                          auto *pdu = rrc::encode::Decode<ASN_RRC_UL_CCCH1_Message>(asn_DEF_ASN_RRC_UL_CCCH1_Message, rrcPdu);
+                          std::cout<<"UERANSIM Not Yet, CH: UL_CCCH1"<<std::endl;
+                          break;                                                                 
+                          }
                         case rrc::RrcChannel::DL_DCCH:
+                          break;
                         case rrc::RrcChannel::UL_DCCH:
-                            std::cout << "DCCH"<<std::endl;
+                          {
+                          auto *pdu = rrc::encode::Decode<ASN_RRC_UL_DCCH_Message>(asn_DEF_ASN_RRC_UL_DCCH_Message, rrcPdu);
+                          if (pdu->message.present != ASN_RRC_UL_DCCH_MessageType_PR_c1)
+                             break;
+                          auto &c1 = pdu->message.choice.c1;
+                          switch (c1->present)
+                          {
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_NOTHING:
                             break;
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_measurementReport:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_rrcReconfigurationComplete:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_rrcSetupComplete:
+                            std::cout<<"Receive RRC Setup Complete, ";                            
+                            break;
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_rrcReestablishmentComplete:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_rrcResumeComplete:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_securityModeComplete:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_securityModeFailure:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_ulInformationTransfer:
+                            std::cout<<"Receive Uplink Information Transfer, ";                            
+                            break; 
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_locationMeasurementIndication:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_ueCapabilityInformation:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_counterCheckResponse:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_ueAssistanceInformation:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_failureInformation:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_ulInformationTransferMRDC:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_scgFailureInformation:
+                            break; // TODO
+                          case ASN_RRC_UL_DCCH_MessageType__c1_PR_scgFailureInformationEUTRA:
+                            break; // TODO
+                          }
+
+                          std::cout << "CH: UL_DCCH"<<std::endl;
+                          break;
+                          }
                         case rrc::RrcChannel::PCCH:
-                            std::cout << "PCCH"<<std::endl;
-                            break;
+                          std::cout << "PCCH"<<std::endl;
+                          break;
                         default:
                             std::cout << "What???"<<std::endl;
                     }
@@ -191,10 +276,10 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                 rls::RlsMessage &ref_msg = *msg;
                 auto &m = (rls::RlsPduTransmission &)ref_msg;
                 if (m.pduType == rls::EPduType::DATA)
-                    std::cout << "It is DATA"<<std::endl;
+                    std::cout << "DATA Message"<<std::endl;
                 else if (m.pduType == rls::EPduType::RRC)
                 {
-                    std::cout << "It is RRC" << std::endl;
+                    std::cout << "RRC Message" << std::endl;
                     rrc::RrcChannel channel = static_cast<rrc::RrcChannel>(m.payload);
                     OctetString rrcPdu  = std::move(m.pdu);
                                     
@@ -233,16 +318,16 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                               switch (c1->present)
                               {
                               case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcReject:
-                                std::cout<<"Receive RRC Reject ";                         
+                                std::cout<<"Receive RRC Reject, ";                         
                                 break;
                               case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcSetup:                              
-                                std::cout<<"Receive RRC Setup ";
+                                std::cout<<"Receive RRC Setup, ";
                                 break;
                               case ASN_RRC_DL_DCCH_MessageType__c1_PR_dlInformationTransfer:
-                                std::cout<<"Receive DownLink Information Transfer ";                             
+                                std::cout<<"Receive DownLink Information Transfer, ";                             
                                 break;
                               case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:
-                                std::cout<<"Receive RRC Release ";                                
+                                std::cout<<"Receive RRC Release, ";                                
                                 break;
                               default:
                                 break;
@@ -261,10 +346,10 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                                 switch (c1->present)
                                 {
                                  case ASN_RRC_DL_DCCH_MessageType__c1_PR_dlInformationTransfer:                                   
-                                   std::cout<<"Receive DownLink Information Transfer ";
+                                   std::cout<<"Receive DownLink Information Transfer, ";
                                    break;                                   
                                  case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:                                   
-                                   std::cout<<"Receive RRC Release ";
+                                   std::cout<<"Receive RRC Release, ";
                                    break;                                   
                                  default:
                                    break;                               
@@ -285,7 +370,7 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                               switch (c1->present)
                               {
                               case ASN_RRC_PCCH_MessageType__c1_PR_paging:                                
-                                std::cout<<"Receive Paging ";
+                                std::cout<<"Receive Paging, ";
                                 break;                                
                               default:
                                 break;
