@@ -236,8 +236,56 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_securityModeFailure:
 					break; // TODO
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_ulInformationTransfer:
-					std::cout << "Receive Uplink Information Transfer, ";
-					break;
+				{	/*
+					ASN_RRC_DLInformationTransfer& nasmsg = *c1->choice.dlInformationTransfer;
+					OctetString nasPdu = asn::GetOctetString(*nasmsg.criticalExtensions.choice.dlInformationTransfer->dedicatedNAS_Message);
+
+					auto* m = new NmUeRrcToNas(NmUeRrcToNas::NAS_DELIVERY);
+					m->nasPdu = std::move(nasPdu);
+					OctetView buffer{ m->nasPdu };
+					auto nasMessage = nas::DecodeNasMessage(buffer);
+					if (nasMessage->epd == nas::EExtendedProtocolDiscriminator::SESSION_MANAGEMENT_MESSAGES)
+					{
+						std::cout << "Bad constructed message received (SM)" << std::endl;
+					}
+					auto& mmMsg = (const nas::MmMessage&)*nasMessage;
+					if (mmMsg.sht == nas::ESecurityHeaderType::NOT_PROTECTED)
+					{
+						// If any NAS signalling message is received as not integrity protected even though the secure exchange of NAS
+						// messages has been established by the network, then the NAS shall discard this message
+						std::cout << "Receive Not Protected NAS Message" << std::endl;
+						receiveMmMessage((const nas::PlainMmMessage&)mmMsg);
+					}
+					else if (mmMsg.sht == nas::ESecurityHeaderType::INTEGRITY_PROTECTED_WITH_NEW_SECURITY_CONTEXT)
+					{
+						auto& securedMm = (const nas::SecuredMmMessage&)mmMsg;
+						auto smcMsg = nas::DecodeNasMessage(OctetView{ securedMm.plainNasMessage });
+
+						if (smcMsg->epd != nas::EExtendedProtocolDiscriminator::MOBILITY_MANAGEMENT_MESSAGES ||
+							(((const nas::MmMessage&)(*smcMsg)).sht != nas::ESecurityHeaderType::NOT_PROTECTED) ||
+							(((const nas::PlainMmMessage&)(*smcMsg)).messageType != nas::EMessageType::SECURITY_MODE_COMMAND))
+						{
+							std::cout << "A valid Security Mode Command expected for given SHT. Ignoring received NAS message" << std::endl;
+						}
+
+						((nas::SecurityModeCommand&)(*smcMsg))._macForNewSC = securedMm.messageAuthenticationCode;
+						((nas::SecurityModeCommand&)(*smcMsg))._originalPlainNasPdu = securedMm.plainNasMessage.copy();
+
+						receiveMmMessage((const nas::PlainMmMessage&)(*smcMsg));
+					}
+					else if (mmMsg.sht == nas::ESecurityHeaderType::INTEGRITY_PROTECTED_AND_CIPHERED_WITH_NEW_SECURITY_CONTEXT)
+					{
+						std::cout << "Bad constructed message received (SHT)" << std::endl;
+					}
+					else
+					{
+						std::cout << "Receive Protected NAS Message" << std::endl;
+					}
+					break;*/
+
+				std::cout << "Receive Uplink Information Transfer, ";
+				break;
+				}
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_locationMeasurementIndication:
 					break; // TODO
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_ueCapabilityInformation:
@@ -286,6 +334,57 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 	return 0;
 }
 
+void receiveMmMessage(const nas::PlainMmMessage& msg)
+{
+	switch (msg.messageType)
+	{
+	case nas::EMessageType::REGISTRATION_ACCEPT:
+		std::cout << "NAS-REGISTRATION_ACCEPT" << std::endl;
+		break;
+	case nas::EMessageType::REGISTRATION_REJECT:
+		std::cout << "NAS-REGISTRATION_REJECT" << std::endl;
+		break;
+	case nas::EMessageType::DEREGISTRATION_ACCEPT_UE_ORIGINATING:
+		std::cout << "NAS-DEREGISTRATION_ACCEPT_UE_ORIGINATING" << std::endl;
+		break;
+	case nas::EMessageType::DEREGISTRATION_REQUEST_UE_TERMINATED:
+		std::cout << "NAS-DEREGISTRATION_REQUEST_UE_TERMINATED" << std::endl;
+		break;
+	case nas::EMessageType::SERVICE_REJECT:
+		std::cout << "NAS-SERVICE_REJECT" << std::endl;
+		break;
+	case nas::EMessageType::SERVICE_ACCEPT:
+		std::cout << "NAS-SERVICE_ACCEPT" << std::endl;
+		break;
+	case nas::EMessageType::CONFIGURATION_UPDATE_COMMAND:
+		std::cout << "NAS-CONFIGURATION_UPDATE_COMMAND" << std::endl;
+		break;
+	case nas::EMessageType::AUTHENTICATION_REQUEST:
+		std::cout << "NAS-AUTHENTICATION_REQUEST" << std::endl;
+		break;
+	case nas::EMessageType::AUTHENTICATION_REJECT:
+		std::cout << "NAS-AUTHENTICATION_REJECT" << std::endl;
+		break;
+	case nas::EMessageType::AUTHENTICATION_RESULT:
+		std::cout << "NAS-AUTHENTICATION_RESULT" << std::endl;
+		break;
+	case nas::EMessageType::IDENTITY_REQUEST:
+		std::cout << "NAS-IDENTITY_REQUEST" << std::endl;
+		break;
+	case nas::EMessageType::SECURITY_MODE_COMMAND:
+		std::cout << "NAS-SECURITY_MODE_COMMAND" << std::endl;
+		break;
+	case nas::EMessageType::FIVEG_MM_STATUS:
+		std::cout << "NAS-FIVEG_MM_STATUS" << std::endl;
+		break;
+	case nas::EMessageType::DL_NAS_TRANSPORT:
+		std::cout << "NAS-DL_NAS_TRANSPORT" << std::endl;
+		break;
+	default:
+		std::cout << "Unhandled NAS MM message received" << std::endl;
+		break;
+	}
+}
 
 
 int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint8_t rt_buf[], int& rt_size)
@@ -369,26 +468,25 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 				{
 				case ASN_RRC_DL_DCCH_MessageType__c1_PR_dlInformationTransfer:
 				{
-					std::cout << "Receive DownLink Information Transfer, ";
-					ASN_RRC_DLInformationTransfer& msg = *c1->choice.dlInformationTransfer;
-					OctetString nasPdu = asn::GetOctetString(*msg.criticalExtensions.choice.dlInformationTransfer->dedicatedNAS_Message);
+					std::cout << "Receive DownLink Information Transfer\n";
+					ASN_RRC_DLInformationTransfer& nasmsg = *c1->choice.dlInformationTransfer;
+					OctetString nasPdu = asn::GetOctetString(*nasmsg.criticalExtensions.choice.dlInformationTransfer->dedicatedNAS_Message);
 
 					auto* m = new NmUeRrcToNas(NmUeRrcToNas::NAS_DELIVERY);
 					m->nasPdu = std::move(nasPdu);
 					OctetView buffer{ m->nasPdu };
-
 					auto nasMessage = nas::DecodeNasMessage(buffer);
 					if (nasMessage->epd == nas::EExtendedProtocolDiscriminator::SESSION_MANAGEMENT_MESSAGES)
 					{
 						std::cout << "Bad constructed message received (SM)" << std::endl;
 					}
-					auto& mmMsg = (const nas::MmMessage&)msg;
+					auto& mmMsg = (const nas::MmMessage&)*nasMessage;
 					if (mmMsg.sht == nas::ESecurityHeaderType::NOT_PROTECTED)
 					{
 						// If any NAS signalling message is received as not integrity protected even though the secure exchange of NAS
 						// messages has been established by the network, then the NAS shall discard this message
 						std::cout << "Receive Not Protected NAS Message" << std::endl;
-						//receiveMmMessage((const nas::PlainMmMessage&)mmMsg);
+						receiveMmMessage((const nas::PlainMmMessage&)mmMsg);
 					}
 					else if (mmMsg.sht == nas::ESecurityHeaderType::INTEGRITY_PROTECTED_WITH_NEW_SECURITY_CONTEXT)
 					{
@@ -405,7 +503,7 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 						((nas::SecurityModeCommand&)(*smcMsg))._macForNewSC = securedMm.messageAuthenticationCode;
 						((nas::SecurityModeCommand&)(*smcMsg))._originalPlainNasPdu = securedMm.plainNasMessage.copy();
 
-						//receiveMmMessage((const nas::PlainMmMessage&)(*smcMsg));
+						receiveMmMessage((const nas::PlainMmMessage&)(*smcMsg));
 					}
 					else if (mmMsg.sht == nas::ESecurityHeaderType::INTEGRITY_PROTECTED_AND_CIPHERED_WITH_NEW_SECURITY_CONTEXT)
 					{
@@ -415,9 +513,6 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 					{
 						std::cout << "Receive Protected NAS Message" << std::endl;
 					}
-
-
-
 					break;
 				}
 				case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:
