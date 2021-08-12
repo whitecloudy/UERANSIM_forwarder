@@ -6,7 +6,7 @@
 // and subject to the terms and conditions defined in LICENSE file.
 //
 
-#include "types.hpp"
+#include "ue_types.hpp"
 #include <utils/printer.hpp>
 
 namespace nr::ue

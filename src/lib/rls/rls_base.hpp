@@ -5,10 +5,13 @@
 // The software and all associated files are licensed under GPL-3.0
 // and subject to the terms and conditions defined in LICENSE file.
 //
+#ifndef __RLS_BASE__
+#define __RLS_BASE__
 
 #include "rls_pdu.hpp"
 
 #include <lib/rrc/rrc.hpp>
+
 
 namespace rls
 {
@@ -30,3 +33,5 @@ enum class ERlfCause
 };
 
 } // namespace rls
+
+#endif

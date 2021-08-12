@@ -5,11 +5,13 @@
 #include <string>
 #include <vector>
 #include <utils/network.hpp>
-#include "types.hpp"
+#include "ue_types.hpp"
+#include "gnb_types.hpp"
 #include <lib/app/cli_cmd.hpp>
 #include <memory>
 #include <utils/nts.hpp>
-#include "nts.hpp"
+#include "ue_nts.hpp"
+#include "gnb_nts.hpp"
 
 class Forwarder
 {
@@ -106,5 +108,32 @@ struct NmUeRlsToRls : NtsMessage
     }
 };
 
+struct NmUeRrcToNas : NtsMessage
+{
+    enum PR
+    {
+        NAS_NOTIFY,
+        NAS_DELIVERY,
+        RRC_CONNECTION_SETUP,
+        RRC_CONNECTION_RELEASE,
+        RRC_ESTABLISHMENT_FAILURE,
+        RADIO_LINK_FAILURE,
+        PAGING,
+        ACTIVE_CELL_CHANGED,
+        RRC_FALLBACK_INDICATION,
+    } present;
 
+    // NAS_DELIVERY
+    OctetString nasPdu;
+
+    // PAGING
+    std::vector<GutiMobileIdentity> pagingTmsi;
+
+    // ACTIVE_CELL_CHANGED
+    Tai previousTai;
+
+    explicit NmUeRrcToNas(PR present) : NtsMessage(NtsMessageType::UE_RRC_TO_NAS), present(present)
+    {
+    }
+};
 #endif

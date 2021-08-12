@@ -6,9 +6,4 @@
 // and subject to the terms and conditions defined in LICENSE file.
 //
 
-#include "nts.hpp"
-
-namespace nr::ue
-{
-
-}
+#include "gnb_nts.hpp"
