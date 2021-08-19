@@ -41,6 +41,8 @@
 #include <asn/rrc/ASN_RRC_ULInformationTransfer.h>
 
 
+//#include <lib_open5gs/nas/5gs/ogs-nas-5gs.h> // open5GS message lib
+
 const unsigned int BUFSIZE = 0x1000000;
 
 int Forwarder::addr_n_sock::ID_cur = 0;
@@ -134,6 +136,100 @@ int Forwarder::do_work(void)
 
 	delete(buffer);
 	delete(rt_buf);
+}
+
+void receiveMmMessage(const nas::PlainMmMessage& msg)
+{
+  switch (msg.messageType)
+  {
+  case nas::EMessageType::REGISTRATION_REQUEST:
+	std::cout << "NAS-REGISTRATION_REQUEST" << std::endl;
+	break;
+  case nas::EMessageType::REGISTRATION_ACCEPT:
+    std::cout << "NAS-REGISTRATION_ACCEPT" << std::endl;
+    break;
+  case nas::EMessageType::REGISTRATION_COMPLETE:
+	std::cout << "NAS-REGISTRATION_COMPLETE" << std::endl;
+	break;
+  case nas::EMessageType::REGISTRATION_REJECT:
+    std::cout << "NAS-REGISTRATION_REJECT" << std::endl;
+    break;
+
+  case nas::EMessageType::DEREGISTRATION_ACCEPT_UE_ORIGINATING:
+    std::cout << "NAS-DEREGISTRATION_ACCEPT_UE_ORIGINATING" << std::endl;
+    break;
+  case nas::EMessageType::DEREGISTRATION_REQUEST_UE_TERMINATED:
+    std::cout << "NAS-DEREGISTRATION_REQUEST_UE_TERMINATED" << std::endl;
+    break;
+  case nas::EMessageType::DEREGISTRATION_REQUEST_UE_ORIGINATING:
+	std::cout << "NAS-DEREGISTRATION_REQUEST_UE_ORIGINATING" << std::endl;
+	break;
+  case nas::EMessageType::DEREGISTRATION_ACCEPT_UE_TERMINATED:
+	std::cout << "NAS-DEREGISTRATION_ACCEPT_UE_TERMINATED" << std::endl;
+	break;
+
+  case nas::EMessageType::SERVICE_REJECT:
+    std::cout << "NAS-SERVICE_REJECT" << std::endl;
+    break;
+  case nas::EMessageType::SERVICE_REQUEST:
+	std::cout << "NAS-SERVICE_REQUEST" << std::endl;
+	break;
+  case nas::EMessageType::SERVICE_ACCEPT:
+    std::cout << "NAS-SERVICE_ACCEPT" << std::endl;
+    break;
+
+  case nas::EMessageType::CONFIGURATION_UPDATE_COMMAND:
+    std::cout << "NAS-CONFIGURATION_UPDATE_COMMAND" << std::endl;
+    break;
+  case nas::EMessageType::CONFIGURATION_UPDATE_COMPLETE:
+	std::cout << "NAS-CONFIGURATION_UPDATE_COMPLETE" << std::endl;
+	break;
+
+  case nas::EMessageType::AUTHENTICATION_REQUEST:
+    std::cout << "NAS-AUTHENTICATION_REQUEST" << std::endl;
+    break;
+  case nas::EMessageType::AUTHENTICATION_REJECT:
+    std::cout << "NAS-AUTHENTICATION_REJECT" << std::endl;
+    break;
+  case nas::EMessageType::AUTHENTICATION_RESPONSE:
+	std::cout << "NAS-AUTHENTICATION_RESPONSE" << std::endl;
+	break;
+  case nas::EMessageType::AUTHENTICATION_RESULT:
+    std::cout << "NAS-AUTHENTICATION_RESULT" << std::endl;
+    break;
+  case nas::EMessageType::AUTHENTICATION_FAILURE:
+    std::cout << "NAS-AUTHENTICATION_FAILURE " << std::endl;
+    break;
+
+  case nas::EMessageType::IDENTITY_REQUEST:
+    std::cout << "NAS-IDENTITY_REQUEST" << std::endl;
+    break;
+  case nas::EMessageType::IDENTITY_RESPONSE:
+	std::cout << "NAS-IDENTITY_RESPONSE" << std::endl;
+	break;
+  case nas::EMessageType::SECURITY_MODE_COMMAND:
+    std::cout << "NAS-SECURITY_MODE_COMMAND" << std::endl;
+    break;
+  case nas::EMessageType::SECURITY_MODE_COMPLETE:
+	std::cout << "NAS-SECURITY_MODE_COMPLETE" << std::endl;
+	break;
+  case nas::EMessageType::SECURITY_MODE_REJECT:
+	std::cout << "NAS-SECURITY_MODE_REJECT" << std::endl;
+	break;
+
+  case nas::EMessageType::FIVEG_MM_STATUS:
+    std::cout << "NAS-FIVEG_MM_STATUS" << std::endl;
+    break;
+  case nas::EMessageType::DL_NAS_TRANSPORT:
+    std::cout << "NAS-DL_NAS_TRANSPORT" << std::endl;
+    break;
+  case nas::EMessageType::UL_NAS_TRANSPORT:
+	std::cout << "NAS-UL_NAS_TRANSPORT" << std::endl;
+	break;
+  default:
+    std::cout << "Unhandled NAS MM message received" << std::endl;
+    break;
+  }
 }
 
 
@@ -236,18 +332,16 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_securityModeFailure:
 					break; // TODO
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_ulInformationTransfer:
-				{	/*
-					ASN_RRC_DLInformationTransfer& nasmsg = *c1->choice.dlInformationTransfer;
-					OctetString nasPdu = asn::GetOctetString(*nasmsg.criticalExtensions.choice.dlInformationTransfer->dedicatedNAS_Message);
+				{
+					std::cout << "Receive Uplink Information Transfer\n";
+					
+					ASN_RRC_ULInformationTransfer& nasmsg = *c1->choice.ulInformationTransfer;
+					OctetString nasPdu = asn::GetOctetString(*nasmsg.criticalExtensions.choice.ulInformationTransfer->dedicatedNAS_Message);
 
 					auto* m = new NmUeRrcToNas(NmUeRrcToNas::NAS_DELIVERY);
 					m->nasPdu = std::move(nasPdu);
 					OctetView buffer{ m->nasPdu };
 					auto nasMessage = nas::DecodeNasMessage(buffer);
-					if (nasMessage->epd == nas::EExtendedProtocolDiscriminator::SESSION_MANAGEMENT_MESSAGES)
-					{
-						std::cout << "Bad constructed message received (SM)" << std::endl;
-					}
 					auto& mmMsg = (const nas::MmMessage&)*nasMessage;
 					if (mmMsg.sht == nas::ESecurityHeaderType::NOT_PROTECTED)
 					{
@@ -275,15 +369,14 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 					}
 					else if (mmMsg.sht == nas::ESecurityHeaderType::INTEGRITY_PROTECTED_AND_CIPHERED_WITH_NEW_SECURITY_CONTEXT)
 					{
-						std::cout << "Bad constructed message received (SHT)" << std::endl;
+						std::cout << "INTEGRITY_PROTECTED_AND_CIPHERED_WITH_NEW_SECURITY_CONTEXT" << std::endl;
 					}
 					else
 					{
 						std::cout << "Receive Protected NAS Message" << std::endl;
 					}
-					break;*/
+					
 
-				std::cout << "Receive Uplink Information Transfer, ";
 				break;
 				}
 				case ASN_RRC_UL_DCCH_MessageType__c1_PR_locationMeasurementIndication:
@@ -332,58 +425,6 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 	rt_size = data_size;
 	std::cout << "\n\n";
 	return 0;
-}
-
-void receiveMmMessage(const nas::PlainMmMessage& msg)
-{
-	switch (msg.messageType)
-	{
-	case nas::EMessageType::REGISTRATION_ACCEPT:
-		std::cout << "NAS-REGISTRATION_ACCEPT" << std::endl;
-		break;
-	case nas::EMessageType::REGISTRATION_REJECT:
-		std::cout << "NAS-REGISTRATION_REJECT" << std::endl;
-		break;
-	case nas::EMessageType::DEREGISTRATION_ACCEPT_UE_ORIGINATING:
-		std::cout << "NAS-DEREGISTRATION_ACCEPT_UE_ORIGINATING" << std::endl;
-		break;
-	case nas::EMessageType::DEREGISTRATION_REQUEST_UE_TERMINATED:
-		std::cout << "NAS-DEREGISTRATION_REQUEST_UE_TERMINATED" << std::endl;
-		break;
-	case nas::EMessageType::SERVICE_REJECT:
-		std::cout << "NAS-SERVICE_REJECT" << std::endl;
-		break;
-	case nas::EMessageType::SERVICE_ACCEPT:
-		std::cout << "NAS-SERVICE_ACCEPT" << std::endl;
-		break;
-	case nas::EMessageType::CONFIGURATION_UPDATE_COMMAND:
-		std::cout << "NAS-CONFIGURATION_UPDATE_COMMAND" << std::endl;
-		break;
-	case nas::EMessageType::AUTHENTICATION_REQUEST:
-		std::cout << "NAS-AUTHENTICATION_REQUEST" << std::endl;
-		break;
-	case nas::EMessageType::AUTHENTICATION_REJECT:
-		std::cout << "NAS-AUTHENTICATION_REJECT" << std::endl;
-		break;
-	case nas::EMessageType::AUTHENTICATION_RESULT:
-		std::cout << "NAS-AUTHENTICATION_RESULT" << std::endl;
-		break;
-	case nas::EMessageType::IDENTITY_REQUEST:
-		std::cout << "NAS-IDENTITY_REQUEST" << std::endl;
-		break;
-	case nas::EMessageType::SECURITY_MODE_COMMAND:
-		std::cout << "NAS-SECURITY_MODE_COMMAND" << std::endl;
-		break;
-	case nas::EMessageType::FIVEG_MM_STATUS:
-		std::cout << "NAS-FIVEG_MM_STATUS" << std::endl;
-		break;
-	case nas::EMessageType::DL_NAS_TRANSPORT:
-		std::cout << "NAS-DL_NAS_TRANSPORT" << std::endl;
-		break;
-	default:
-		std::cout << "Unhandled NAS MM message received" << std::endl;
-		break;
-	}
 }
 
 

@@ -51,7 +51,7 @@ class Forwarder
         int handle_gNBs_packet(const uint8_t buf[], const int data_size, uint8_t rt_buf[], int& rt_size);
 };
 
-
+// To Decode RLS Message
 struct NmUeRlsToRls : NtsMessage
 {
     enum PR
@@ -108,6 +108,7 @@ struct NmUeRlsToRls : NtsMessage
     }
 };
 
+// To Decode NAS Message for UE
 struct NmUeRrcToNas : NtsMessage
 {
     enum PR
@@ -136,4 +137,32 @@ struct NmUeRrcToNas : NtsMessage
     {
     }
 };
+
+// To Decode NAS Message for gNB
+struct NmGnbRrcToNgap : NtsMessage
+{
+    enum PR
+    {
+        INITIAL_NAS_DELIVERY,
+        UPLINK_NAS_DELIVERY,
+        RADIO_LINK_FAILURE
+    } present;
+
+    // INITIAL_NAS_DELIVERY
+    // UPLINK_NAS_DELIVERY
+    // RADIO_LINK_FAILURE
+    int ueId{};
+
+    // INITIAL_NAS_DELIVERY
+    // UPLINK_NAS_DELIVERY
+    OctetString pdu{};
+
+    // INITIAL_NAS_DELIVERY
+    long rrcEstablishmentCause{};
+
+    explicit NmGnbRrcToNgap(PR present) : NtsMessage(NtsMessageType::GNB_RRC_TO_NGAP), present(present)
+    {
+    }
+};
+
 #endif
