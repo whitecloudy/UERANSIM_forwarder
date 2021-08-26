@@ -4,6 +4,7 @@
 #include <cstring>
 #include <lib/rls/rls_pdu.hpp>
 #include <utils/octet_view.hpp>
+#include <utils/common.hpp>
 #include <lib/rrc/rrc.hpp>
 
 
@@ -46,8 +47,10 @@
 const unsigned int BUFSIZE = 0x1000000;
 
 int Forwarder::addr_n_sock::ID_cur = 0;
-
-
+ASN_RRC_InitialUE_Identity_t m_initialId;
+ASN_RRC_EstablishmentCause m_establishmentCause = ASN_RRC_EstablishmentCause_mt_Access;
+Socket glob_skt;
+InetAddress glob_add;
 
 Forwarder::Forwarder(const std::string GNB_IP,
 	const uint16_t GNB_PORT,
@@ -87,6 +90,8 @@ int Forwarder::do_work(void)
 			if (recv_sock == false_gnb_sock) //from UEs
 			{
 				send_addr = gNB_addr;
+        //
+        glob_add = send_addr;
 				bool find_flag = false;
 
 				for (unsigned int i = 0; i < addr_sock_pair.size(); i++)
@@ -105,6 +110,8 @@ int Forwarder::do_work(void)
 					addr_sock_pair.push_back(addr_n_sock(recv_addr, new_ue2gnb));
 					listen_socks.push_back(new_ue2gnb);
 					send_sock = new_ue2gnb;
+          //
+          glob_skt = send_sock;
 					id = addr_sock_pair[addr_sock_pair.size() - 1].ID;
 				}
 
@@ -232,6 +239,88 @@ void receiveMmMessage(const nas::PlainMmMessage& msg)
   }
 }
 
+void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg)
+{
+    OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_UL_CCCH_Message, msg);
+    if (pdu.length() == 0)
+    {
+        std::cout<<"RRC UL-DCCH encoding failed."<< std::endl;
+        return;
+    }
+
+    auto *m = new NmUeRrcToRls(NmUeRrcToRls::RRC_PDU_DELIVERY);
+    m->cellId = cellId;
+    m->channel = rrc::RrcChannel::UL_CCCH;
+    m->pdu = std::move(pdu);
+
+    /*
+
+    auto *new_m = new NmUeRlsToRls(NmUeRlsToRls::UPLINK_RRC);
+    new_m->cellId = m->cellId;
+    new_m->rrcChannel = m->channel;
+    new_m->pduId = 0;
+    new_m->data = std::move(m->pdu);
+    */
+
+    //
+    //rls::RlsPduTransmission new_msg{m_shCtx->sti};
+    rls::RlsPduTransmission new_msg{utils::Random64()};
+    new_msg.pduType = rls::EPduType::RRC;
+    new_msg.pdu = std::move(m->pdu);
+    new_msg.payload = static_cast<uint32_t>(m->channel);
+    new_msg.pduId = 0;
+
+    OctetString stream;
+    rls::EncodeRlsMessage(new_msg, stream);
+    printf("hihi\n");
+    glob_skt.send(glob_add,stream.data(),sizeof(stream.data()) );
+
+
+}
+
+
+static ASN_RRC_UL_CCCH_Message *ConstructSetupRequest(ASN_RRC_InitialUE_Identity_t initialUeId,
+                                                      ASN_RRC_EstablishmentCause_t establishmentCause)
+{
+    auto *pdu = asn::New<ASN_RRC_UL_CCCH_Message>();
+    pdu->message.present = ASN_RRC_UL_CCCH_MessageType_PR_c1;
+    pdu->message.choice.c1 = asn::NewFor(pdu->message.choice.c1);
+    pdu->message.choice.c1->present = ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcSetupRequest;
+
+    auto &r = pdu->message.choice.c1->choice.rrcSetupRequest = asn::New<ASN_RRC_RRCSetupRequest>();
+    asn::DeepCopy(asn_DEF_ASN_RRC_InitialUE_Identity, initialUeId, &r->rrcSetupRequest.ue_Identity);
+    r->rrcSetupRequest.establishmentCause = establishmentCause;
+    asn::SetSpareBits<1>(r->rrcSetupRequest.spare);
+
+    return pdu;
+}
+
+
+void startConnectionEstablishment()
+{
+    int activeCell = 1;
+    printf("activecell: %d\n",activeCell);
+
+    if (m_initialId.present == ASN_RRC_InitialUE_Identity_PR_NOTHING)
+    {
+        printf("dfdsf\n");
+        m_initialId.present = ASN_RRC_InitialUE_Identity_PR_randomValue;
+        asn::SetBitStringLong<39>(static_cast<int64_t>(utils::Random64()), m_initialId.choice.randomValue);
+    }
+    //
+    printf("num: %10x\n",m_initialId.choice.randomValue);
+
+    std::cout<< "Sending RRC Setup Request" <<std::endl;
+
+    auto *rrcSetupRequest =
+        ConstructSetupRequest(m_initialId, static_cast<ASN_RRC_EstablishmentCause_t>(m_establishmentCause));
+    sendRrcMessage(activeCell, rrcSetupRequest);
+    asn::Free(asn_DEF_ASN_RRC_UL_CCCH_Message, rrcSetupRequest);
+}
+
+
+
+
 
 int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8_t rt_buf[], int& rt_size)
 {
@@ -309,6 +398,8 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 			case rrc::RrcChannel::UL_DCCH:
 			{
 				auto* pdu = rrc::encode::Decode<ASN_RRC_UL_DCCH_Message>(asn_DEF_ASN_RRC_UL_DCCH_Message, rrcPdu);
+      
+
 				if (pdu->message.present != ASN_RRC_UL_DCCH_MessageType_PR_c1)
 					break;
 				auto& c1 = pdu->message.choice.c1;
@@ -470,6 +561,8 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 				{
 				case ASN_RRC_BCCH_DL_SCH_MessageType__c1_PR_systemInformationBlockType1:
 					std::cout << "Receive Sib1, CH: BCCH_DL_SCH" << std::endl;
+          //
+          startConnectionEstablishment();
 					break;
 				default:
 					break;
