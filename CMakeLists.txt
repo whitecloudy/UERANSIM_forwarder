@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.10)
 project(ueransim)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,6 +14,10 @@ add_subdirectory(src/asn/asn1c)
 add_subdirectory(src/asn/rrc)
 add_subdirectory(src/asn/ngap)
 add_subdirectory(src/lib)
+#add_subdirectory(src/lib_open5gs)
+
+add_subdirectory(src/tester)
+
 
 #################### GNB EXECUTABLE ####################
 
@@ -25,5 +29,5 @@ target_link_libraries(main pthread)
 target_link_libraries(main asn-rrc)
 target_link_libraries(main asn-ngap)
 target_link_libraries(main common-lib)
-
-
+#target_link_libraries(main common-lib-5gs)
+target_link_libraries(main tester)
