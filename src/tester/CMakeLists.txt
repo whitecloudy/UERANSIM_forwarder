@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 file(GLOB_RECURSE HDR_FILES *.hpp)
 file(GLOB_RECURSE SRC_FILES *.cpp)
 
-add_library(tester ${HDR_FILES} ${SRC_FILES})
+add_library(tester ${HDR_FILES} ${SRC_FILES} Parser.hpp Parser.cpp StateManager.hpp StateManager.cpp)
 
 target_compile_options(tester PRIVATE -fPIC -Wall -Wextra -pedantic -Wno-unused-parameter)
 
