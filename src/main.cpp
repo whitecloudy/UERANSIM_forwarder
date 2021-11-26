@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <tester/Forwarder.hpp>
 
-
 const std::string IP_ADDR = "127.8.8.8";
 const uint16_t PORT       = 4997;
 
@@ -21,5 +20,6 @@ int main(int argc, char ** argv)
     Forwarder forwarder(GNB_ADDR, GNB_PORT, IP_ADDR, PORT);
 
     forwarder.do_work();
+
     return 0;
 }
