@@ -42,79 +42,7 @@ class Parser {
   class Action {
 
     public:
-      Action(string act_name) {
-        string token[TOKEN_NUM];
-
-        for(int i=0; i<TOKEN_NUM; i++)
-        {
-          size_t pos = act_name.find("_");
-
-          if(pos == string::npos)
-          {
-            cout<<"Error in action name: "<<act_name<<endl;
-            break;
-          }
-
-          if(i == TOKEN_NUM - 1)
-            token[i] = act_name;
-          else
-          {
-            token[i] = act_name.substr(0, pos);
-            act_name.erase(0, pos + 1);
-          }
-
-          cout<<"Parse Success: "<<i<<" "<<token[i]<<std::endl;
-        }
-
-        msg_type_id = msg_type_map[token[2]];
-
-        size_t pos = token[2].find("rrc_release");
-        if(pos != string::npos)
-        {
-          if(token[2] == "rrc_release_suspend")
-            release_type = SUSPEND;
-        }
-
-        if(dcch_ul_set.find(token[2]) != dcch_ul_set.end())
-        {
-          ch_type = DCCH;
-          dir_type = UL;
-        }
-        else if(dcch_dl_set.find(token[2]) != dcch_dl_set.end())
-        {
-          ch_type = DCCH;
-          dir_type = DL;
-        }
-        else if(ccch_ul_set.find(token[2]) != ccch_ul_set.end())
-        {
-          ch_type = CCCH;
-          dir_type = UL;
-        }
-        else if(ccch_dl_set.find(token[2]) != ccch_dl_set.end())
-        {
-          ch_type = CCCH;
-          dir_type = DL;
-        }
-        else if(pcch_set.find(token[2]) != pcch_set.end())
-        {
-          ch_type = PCCH;
-        }
-        else
-          cout<<"Error in msg channel & direction type: "<<token[2]<<endl;
-
-        if(token[1] == "BU")
-          dst = "UE";
-        else if(token[1] == "UB")
-          dst = "BS";
-        else
-          cout<<"Error in destination: "<<token[1]<<std::endl;
-      }
-
-      Action(uint32_t id, string d) {
-        msg_type_id = id;
-        dst = d;
-      }
-
+      Action(string act_name);
       ~Action() {
         msg_data.clear();
       }
@@ -133,11 +61,34 @@ public:
     delete inj_act;
   }
 
-  Action* set_inj_act(string act_name);
-  string set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string s);
-
+  void set_inj_act(string act_name);
   void set_inj_msg_data();
+  
+  ChannelType get_ch_type() {
+    return inj_act->ch_type;
+  }
+  DirectionType get_dir_type(){
+    return inj_act->dir_type;
+  }
+  uint32_t get_msg_type_id()
+  {
+    return inj_act->msg_type_id;
+  }
+  ReleaseType get_release_type()
+  {
+    return inj_act->release_type;
+  }
+  string get_dst()
+  {
+    return inj_act->dst;
+  }
+  map<string, uint64_t>* get_msg_data_map()
+  {
+    return &inj_act->msg_data;
+  }
+
   void record_recv_msg_data(string data_name, uint64_t data_value); 
+  string set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string s);
 
 private:
   Action* inj_act;

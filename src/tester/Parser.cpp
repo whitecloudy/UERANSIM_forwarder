@@ -1,11 +1,77 @@
 #include "Parser.hpp"
 
+Parser::Action::Action(string act_name) {
+  string token[TOKEN_NUM];
 
-Parser::Action*
+  for(int i=0; i<TOKEN_NUM; i++)
+  {
+    size_t pos = act_name.find("_");
+
+    if(pos == string::npos)
+    {
+      cout<<"Error in action name: "<<act_name<<endl;
+      break;
+    }
+
+    if(i == TOKEN_NUM - 1)
+      token[i] = act_name;
+    else
+    {
+      token[i] = act_name.substr(0, pos);
+      act_name.erase(0, pos + 1);
+    }
+
+    cout<<"Parse Success: "<<i<<" "<<token[i]<<std::endl;
+  }
+
+  msg_type_id = msg_type_map[token[2]];
+
+  size_t pos = token[2].find("rrc_release");
+  if(pos != string::npos)
+  {
+    if(token[2] == "rrc_release_suspend")
+      release_type = SUSPEND;
+  }
+
+  if(dcch_ul_set.find(token[2]) != dcch_ul_set.end())
+  {
+    ch_type = DCCH;
+    dir_type = UL;
+  }
+  else if(dcch_dl_set.find(token[2]) != dcch_dl_set.end())
+  {
+    ch_type = DCCH;
+    dir_type = DL;
+  }
+  else if(ccch_ul_set.find(token[2]) != ccch_ul_set.end())
+  {
+    ch_type = CCCH;
+    dir_type = UL;
+  }
+  else if(ccch_dl_set.find(token[2]) != ccch_dl_set.end())
+  {
+    ch_type = CCCH;
+    dir_type = DL;
+  }
+  else if(pcch_set.find(token[2]) != pcch_set.end())
+  {
+    ch_type = PCCH;
+  }
+  else
+    cout<<"Error in msg channel & direction type: "<<token[2]<<endl;
+
+  if(token[1] == "BU")
+    dst = "UE";
+  else if(token[1] == "UB")
+    dst = "BS";
+  else
+    cout<<"Error in destination: "<<token[1]<<std::endl;
+}
+
+void
 Parser::set_inj_act(string act_name)
 {
   inj_act = new Parser::Action(act_name);
-  return inj_act;
 }
 
 string
