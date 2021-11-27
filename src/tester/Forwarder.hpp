@@ -61,6 +61,9 @@ class Forwarder
 
         bool start_flag = false;
 
+        uint64_t ue_sti, gnb_sti;
+        uint32_t ue_pduId, gnb_pduId;
+
     public:
         Forwarder(const std::string GNB_IP, 
                 const uint16_t GNB_PORT,
@@ -85,11 +88,15 @@ class Forwarder
         int handle_rrc_setup_complete(const ASN_RRC_RRCSetupComplete &msg);
 
     private:
-        void makeRrcMessage(ASN_RRC_BCCH_BCH_Message *msg);
-        void makeRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg);
-        void makeRrcMessage(int ueId, ASN_RRC_DL_CCCH_Message *msg);
-        void makeRrcMessage(int ueId, ASN_RRC_DL_DCCH_Message *msg);
-        void makeRrcMessage(ASN_RRC_PCCH_Message *msg);
+        OctetString makeRrcMessage(ASN_RRC_BCCH_BCH_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_DL_CCCH_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_DL_DCCH_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_PCCH_Message *msg, uint64_t sti, uint32_t pduId);
+
+        OctetString makeRrcMessage(ASN_RRC_UL_CCCH_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_UL_CCCH1_Message *msg, uint64_t sti, uint32_t pduId);
+        OctetString makeRrcMessage(ASN_RRC_UL_DCCH_Message *msg, uint64_t sti, uint32_t pduId);
 
 
 

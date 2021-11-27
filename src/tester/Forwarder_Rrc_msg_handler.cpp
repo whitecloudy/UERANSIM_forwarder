@@ -104,53 +104,110 @@ int Forwarder::handle_rrc_release(const ASN_RRC_RRCRelease &msg)
 }
 
 
-void Forwarder::makeRrcMessage(ASN_RRC_BCCH_BCH_Message *msg)
+OctetString encodeRrcMsg(OctetString pdu, rrc::RrcChannel channel, uint64_t sti, uint32_t pduId)
+{
+    rls::RlsPduTransmission msg{sti};
+
+    msg.pduType = rls::EPduType::RRC;
+    msg.pdu = std::move(pdu);
+    msg.payload = static_cast<uint32_t>(channel);
+    msg.pduId = pduId;
+
+    OctetString stream;
+
+    rls::EncodeRlsMessage(msg, stream);
+
+    return std::move(stream);
+}
+
+
+OctetString Forwarder::makeRrcMessage(ASN_RRC_BCCH_BCH_Message *msg, uint64_t sti, uint32_t pduId)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_BCCH_BCH_Message, msg);
     if (pdu.length() == 0)
     {
-        return;
+        std::cerr << "PDU Encode Fail" << std::endl;
     }
 
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::BCCH_BCH, sti, pduId));
 }
 
-void Forwarder::makeRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg)
+OctetString Forwarder::makeRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg, uint64_t sti, uint32_t pduId)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_BCCH_DL_SCH_Message, msg);
     if (pdu.length() == 0)
     {
-        return;
+        std::cerr << "PDU Encode Fail" << std::endl;
     }
 
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::BCCH_DL_SCH, sti, pduId));
 }
 
-void Forwarder::makeRrcMessage(int ueId, ASN_RRC_DL_CCCH_Message *msg)
+OctetString Forwarder::makeRrcMessage(ASN_RRC_DL_CCCH_Message *msg, uint64_t sti, uint32_t pduId)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_DL_CCCH_Message, msg);
     if (pdu.length() == 0)
     {
-        return;
+        std::cerr << "PDU Encode Fail" << std::endl;
     }
 
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::DL_CCCH, sti, pduId));
 }
 
-void Forwarder::makeRrcMessage(int ueId, ASN_RRC_DL_DCCH_Message *msg)
+OctetString Forwarder::makeRrcMessage(ASN_RRC_DL_DCCH_Message *msg, uint64_t sti, uint32_t pduId)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_DL_DCCH_Message, msg);
     if (pdu.length() == 0)
     {
-        return;
+        std::cerr << "PDU Encode Fail" << std::endl;
     }
 
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::DL_DCCH, sti, pduId));
 }
 
-void Forwarder::makeRrcMessage(ASN_RRC_PCCH_Message *msg)
+OctetString Forwarder::makeRrcMessage(ASN_RRC_PCCH_Message *msg, uint64_t sti, uint32_t pduId)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_PCCH_Message, msg);
     if (pdu.length() == 0)
     {
-        return;
+        std::cerr << "PDU Encode Fail" << std::endl;
     }
+
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::PCCH, sti, pduId));
 
 }
 
+
+OctetString Forwarder::makeRrcMessage(ASN_RRC_UL_CCCH_Message *msg, uint64_t sti, uint32_t pduId)
+{
+    OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_UL_CCCH_Message, msg);
+    if (pdu.length() == 0)
+    {
+        std::cerr << "PDU Encode Fail" << std::endl;
+    }
+
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::UL_CCCH, sti, pduId));
+}
+
+OctetString Forwarder::makeRrcMessage(ASN_RRC_UL_CCCH1_Message *msg, uint64_t sti, uint32_t pduId)
+{
+    OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_UL_CCCH1_Message, msg);
+    if (pdu.length() == 0)
+    {
+        std::cerr << "PDU Encode Fail" << std::endl;
+    }
+
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::UL_CCCH1, sti, pduId));
+}
+
+OctetString Forwarder::makeRrcMessage(ASN_RRC_UL_DCCH_Message *msg, uint64_t sti, uint32_t pduId)
+{
+    OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_UL_DCCH_Message, msg);
+    if (pdu.length() == 0)
+    {
+        std::cerr << "PDU Encode Fail" << std::endl;
+    }
+
+    return std::move(encodeRrcMsg(std::move(pdu), rrc::RrcChannel::UL_DCCH, sti, pduId));
+
+}

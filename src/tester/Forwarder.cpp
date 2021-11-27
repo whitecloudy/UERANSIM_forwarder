@@ -181,9 +181,9 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
-
-                std::cout << "ue sti : " << m.sti <<std::endl;
-                std::cout << "ue pduId : " << m.pduId <<std::endl;
+                
+                ue_sti = m.sti;
+                ue_pduId = m.pduId;
 
                 if (m.pduType == rls::EPduType::DATA){
                     std::cout << "DATA Message" << std::endl;
@@ -391,9 +391,10 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
+                
+                gnb_sti = m.sti;
+                gnb_pduId = m.pduId;
 
-                std::cout << "gNB sti : " << m.sti <<std::endl;
-                std::cout << "gNB pduId : " << m.pduId <<std::endl;
                 if (m.pduType == rls::EPduType::DATA)
                 {
                     std::cout << "DATA Message" << std::endl;
