@@ -6,6 +6,13 @@
 
 using namespace std;
 
+typedef enum State_type
+{
+    Listen_e,
+    Action_e,
+    Success_e
+} State_type_t;
+
 class StateManager {
 
 public:
@@ -14,5 +21,5 @@ public:
     void change_state(); // If conditions are fulfilled, change state (Action <-> Listen)
     string send_act_string(); // Send action string
 
-    string state = "Listen";
+    State_type_t state = Listen_e;
 };
