@@ -18,7 +18,6 @@ using namespace std;
 enum ReleaseType {SUSPEND};
 enum ChannelType {DCCH, CCCH, PCCH};
 enum DirectionType {UL, DL};
-enum ChanType {UB, BU};
 
 static set<string> dcch_ul_set = {"rrc_sm_complete", "rrc_setup_complete"};
 static set<string> dcch_dl_set = {"rrc_release_suspend", "rrc_release", "rrc_sm_command"};
