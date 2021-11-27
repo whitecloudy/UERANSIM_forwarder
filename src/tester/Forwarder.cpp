@@ -62,6 +62,7 @@ Forwarder::Forwarder(const std::string GNB_IP,
 {
     false_gnb_sock = Socket::CreateAndBindUdp({ IP, PORT });
     listen_socks.push_back(false_gnb_sock);
+    state_manager.set_testcase("TestCase1.txt");
 }
 
 int Forwarder::do_work(void)

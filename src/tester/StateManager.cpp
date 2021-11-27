@@ -106,7 +106,7 @@ StateManager::change_state() {
 //        cout << "TestCase Done! Attack Success" << endl;
 //    }
 
-    if (StateManager::state == "Listen") { // if current state is LISTEN, check whether all conditions are fulfilled
+    if (StateManager::state == Listen_e) { // if current state is LISTEN, check whether all conditions are fulfilled
         size_t notOver = 0;
 
         while((next = lines.find(delimeter)) != string::npos) { // check conditions
@@ -138,22 +138,22 @@ StateManager::change_state() {
         }
 
         cout << "State Changed (Listen -> Action)" << endl;
-        StateManager::state = "Action";
+        StateManager::state = Action_e;
 
         if (notOver == 0) { // No action remains (This stage only listens)
             cout << "No more actions: Next Stage (Action -> Listen)" << endl;
-            StateManager::state = "Listen";
+            StateManager::state = Listen_e;
             current_stage++;
 
             lines = dataset[current_stage];
             if (lines.empty()) { // This stage is the last one
                 cout << "Stage Done! (Listen -> Success)" << endl;
-                StateManager::state = "Success";
+                StateManager::state = Success_e;
             }
         }
     }
 
-    else if (StateManager::state == "Action") { // if current state is ACTION, check whether all actions are sent
+    else if (StateManager::state == Action_e) { // if current state is ACTION, check whether all actions are sent
         while((next = lines.find(delimeter)) != string::npos) {
             token = lines.substr(last, next - last);
             last = next + delimeter.length();
@@ -166,13 +166,13 @@ StateManager::change_state() {
         }
 
         cout << "State Changed (Action -> Listen)" << endl;
-        StateManager::state = "Listen";
+        StateManager::state = Listen_e;
         current_stage++;
 
         lines = dataset[current_stage];
         if (lines.empty()) { // This stage is the last one
             cout << "Stage Done! (Listen -> Success)" << endl;
-            StateManager::state = "Success";
+            StateManager::state = Success_e;
             return;
         }
 
@@ -197,7 +197,7 @@ StateManager::change_state() {
         }
 
         cout << "Next stage only has actions (Listen -> Action)" << endl;
-        StateManager::state = "Action";
+        StateManager::state = Action_e;
     }
 }
 
