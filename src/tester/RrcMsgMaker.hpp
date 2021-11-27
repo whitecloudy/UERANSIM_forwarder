@@ -30,7 +30,7 @@
 
 
 ASN_RRC_DL_DCCH_Message * makeRrcRelease();
-ASN_RRC_DL_CCCH_Message * makeRrcSetupt();
+ASN_RRC_DL_CCCH_Message * makeRrcSetup();
 
 
 

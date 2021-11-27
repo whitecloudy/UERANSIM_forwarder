@@ -64,6 +64,8 @@ class Forwarder
         uint64_t ue_sti, gnb_sti;
         uint32_t ue_pduId, gnb_pduId;
 
+        ASN_RRC_DL_CCCH_Message * copy_msg = NULL;
+
     public:
         Forwarder(const std::string GNB_IP, 
                 const uint16_t GNB_PORT,

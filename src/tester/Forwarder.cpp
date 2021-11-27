@@ -158,10 +158,37 @@ int Forwarder::do_work(void)
             if(rt_val == 0 && start_flag)
             {
                 state_manager.change_state();
-                std::cout << state_manager.state << std::endl;
+                if(state_manager.state == Action_e)
+                {
+                    while(state_manager.state == Action_e)
+                    {
+                        std::string act_str = state_manager.send_act_string();
+                        state_manager.change_state();
+                        act_parser.set_inj_act(act_str);
+
+                        switch(act_parser.get_msg_type_id())
+                        {
+                            case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcSetup:
+                                {
+                                    auto * msg = makeRrcSetup();
+                                    OctetString stream = makeRrcMessage(msg, gnb_sti, gnb_pduId);
+                                    break;
+                                }
+                            case ASN_RRC_DL_DCCH_MessageType__c1_PR_rrcRelease:
+                                {
+                                    auto * msg = makeRrcRelease();
+                                    OctetString stream = makeRrcMessage(msg, gnb_sti, gnb_pduId);
+                                    break;
+                                }
+                            default:
+                                break;
+                        }
+
+                    }
+                }
 
                 //target_ue_handle_sock.send(target_ue_addr, msg.data(), static_cast<size_t>(msg.length()));
-                
+
             } 
         }
     }
@@ -186,7 +213,7 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
 
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
-                
+
                 ue_sti = m.sti;
                 ue_pduId = m.pduId;
 
@@ -396,7 +423,7 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
-                
+
                 gnb_sti = m.sti;
                 gnb_pduId = m.pduId;
 
