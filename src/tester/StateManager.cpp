@@ -9,7 +9,7 @@ StateManager::set_testcase(string filepath) {
     cout << "===== Read and Analyze TestCase =====" << endl;
     ifstream openFile(filepath.data());
     if (openFile.is_open()) {
-        size_t pos2 = 0;
+
         string line;
         string stage;
         int idx = 0;
@@ -26,32 +26,18 @@ StateManager::set_testcase(string filepath) {
             pos = line.find("ue_rrc_state");
             if (pos != string::npos) {
                 cout << line << endl;
-                pos2 = line.find("= ");
-                line = line.substr(pos2 + 2);
                 stage += line;
             }
 
             pos = line.find("bs_rrc_state");
             if (pos != string::npos) {
                 cout << line << endl;
-                pos2 = line.find("= ");
-                line = line.substr(pos2 + 2);
                 stage += line;
             }
 
-            pos = line.find("ue_rrc_action");
+            pos = line.find("null_action");
             if (pos != string::npos) {
                 cout << line << endl;
-                pos2 = line.find("= ");
-                line = line.substr(pos2 + 2);
-                stage += line;
-            }
-
-            pos = line.find("bs_rrc_action");
-            if (pos != string::npos) {
-                cout << line << endl;
-                pos2 = line.find("= ");
-                line = line.substr(pos2 + 2);
                 stage += line;
             }
 
@@ -93,6 +79,17 @@ StateManager::receive_string(string input) {
         }
         last = next + delimeter.length();
     }
+
+//    token = lines.substr(last);
+//    if(token == input) {
+//        cout << "Condition fulfilled: " << token << endl;
+//        lines.erase(last, next - last + delimeter.length());
+//        dataset[current_stage] = lines;
+//    }
+//
+//    else {
+//        cout << "Wrong condition: " << token << endl;
+//    }
     cout << "Wrong condition: " << token << endl;
 }
 
@@ -106,11 +103,11 @@ StateManager::change_state() {
     size_t next = 0;
     size_t pos = 0;
 
-    if (StateManager::state == "Listen") {
+//    if (next_lines.empty()) { // end of TestCase (Success)
+//        cout << "TestCase Done! Attack Success" << endl;
+//    }
 
-    }
-
-    if (StateManager::state == "Listen") { // if current state is LISTEN, check whether all conditions are fulfilled
+    if (StateManager::state == Listen_e) { // if current state is LISTEN, check whether all conditions are fulfilled
         size_t notOver = 0;
 
         while((next = lines.find(delimeter)) != string::npos) { // check conditions
@@ -142,22 +139,22 @@ StateManager::change_state() {
         }
 
         cout << "State Changed (Listen -> Action)" << endl;
-        StateManager::state = "Action";
+        StateManager::state = Action_e;
 
         if (notOver == 0) { // No action remains (This stage only listens)
             cout << "No more actions: Next Stage (Action -> Listen)" << endl;
-            StateManager::state = "Listen";
+            StateManager::state = Listen_e;
             current_stage++;
 
             lines = dataset[current_stage];
             if (lines.empty()) { // This stage is the last one
                 cout << "Stage Done! (Listen -> Success)" << endl;
-                StateManager::state = "Success";
+                StateManager::state = Success_e;
             }
         }
     }
 
-    else if (StateManager::state == "Action") { // if current state is ACTION, check whether all actions are sent
+    else if (StateManager::state == Action_e) { // if current state is ACTION, check whether all actions are sent
         while((next = lines.find(delimeter)) != string::npos) {
             token = lines.substr(last, next - last);
             last = next + delimeter.length();
@@ -170,13 +167,13 @@ StateManager::change_state() {
         }
 
         cout << "State Changed (Action -> Listen)" << endl;
-        StateManager::state = "Listen";
+        StateManager::state = Listen_e;
         current_stage++;
 
         lines = dataset[current_stage];
         if (lines.empty()) { // This stage is the last one
             cout << "Stage Done! (Listen -> Success)" << endl;
-            StateManager::state = "Success";
+            StateManager::state = Success_e;
             return;
         }
 
@@ -201,7 +198,7 @@ StateManager::change_state() {
         }
 
         cout << "Next stage only has actions (Listen -> Action)" << endl;
-        StateManager::state = "Action";
+        StateManager::state = Action_e;
     }
 }
 
@@ -211,9 +208,8 @@ StateManager::send_act_string() {
     string delimeter = "\n";
     string lines = dataset[current_stage];
     size_t next = lines.find(delimeter);
-    size_t pos = lines.find("= ");
 
-    action = lines.substr(pos+2, next);
+    action = lines.substr(0, next);
     lines.erase(0, next + delimeter.length());
     dataset[current_stage] = lines;
 

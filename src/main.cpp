@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdio>
 #include <tester/Forwarder.hpp>
+#include <tester/StateManager.hpp>
 
 const std::string IP_ADDR = "127.8.8.8";
 const uint16_t PORT       = 4997;
@@ -17,9 +18,12 @@ const unsigned int BUFSIZE = 16777216;
 
 int main(int argc, char ** argv)
 {
-    Forwarder forwarder(GNB_ADDR, GNB_PORT, IP_ADDR, PORT);
 
-    forwarder.do_work();
+    StateManager stateManager;
+    stateManager.set_testcase("TestCase1.txt");
+//    Forwarder forwarder(GNB_ADDR, GNB_PORT, IP_ADDR, PORT);
+//
+//    forwarder.do_work();
 
     return 0;
 }
