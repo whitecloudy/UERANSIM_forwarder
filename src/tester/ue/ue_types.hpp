@@ -6,6 +6,9 @@
 // and subject to the terms and conditions defined in LICENSE file.
 //
 
+#ifndef __UE_TYPE__
+#define __UE_TYPE__
+
 #pragma once
 
 #include "ue_timer.hpp"
@@ -647,3 +650,5 @@ Json ToJson(const EServiceReqCause &v);
 Json ToJson(const ERrcState &v);
 
 } // namespace nr::ue
+
+#endif

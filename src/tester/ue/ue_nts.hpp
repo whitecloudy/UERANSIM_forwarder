@@ -6,6 +6,9 @@
 // and subject to the terms and conditions defined in LICENSE file.
 //
 
+#ifndef __UE_NTS__
+#define __UE_NTS__
+
 #pragma once
 
 #include "ue_types.hpp"
@@ -348,3 +351,5 @@ struct NmUeCliCommand : NtsMessage
 };
 
 } // namespace nr::ue
+
+#endif

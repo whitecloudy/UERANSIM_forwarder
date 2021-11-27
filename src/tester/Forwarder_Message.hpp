@@ -49,5 +49,5 @@
 
 void receiveMmMessage(const nas::PlainMmMessage& msg);
 static ASN_RRC_UL_CCCH_Message *ConstructSetupRequest(ASN_RRC_InitialUE_Identity_t initialUeId, ASN_RRC_EstablishmentCause_t establishmentCause);
-void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg, Socket send_sock, InetAddress recv_addr);
-void startConnectionEstablishment(ASN_RRC_InitialUE_Identity_t m_initialId, ASN_RRC_EstablishmentCause m_establishmentCause, Socket send_sock, InetAddress recv_addr);
+//void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg, Socket send_sock, InetAddress recv_addr);
+//void startConnectionEstablishment(ASN_RRC_InitialUE_Identity_t m_initialId, ASN_RRC_EstablishmentCause m_establishmentCause, Socket send_sock, InetAddress recv_addr);

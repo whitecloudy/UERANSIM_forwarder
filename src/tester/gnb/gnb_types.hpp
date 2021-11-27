@@ -6,6 +6,9 @@
 // and subject to the terms and conditions defined in LICENSE file.
 //
 
+#ifndef __GNB_TYPES__
+#define __GNB_TYPES__
+
 #pragma once
 
 #include <lib/app/monitor.hpp>
@@ -351,3 +354,5 @@ Json ToJson(const ServedGuami &v);
 Json ToJson(const Guami &v);
 
 } // namespace nr::gnb
+
+#endif

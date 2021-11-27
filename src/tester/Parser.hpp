@@ -9,7 +9,7 @@
 #include <asn/rrc/ASN_RRC_BCCH-DL-SCH-Message.h>
 #include <asn/rrc/ASN_RRC_DL-CCCH-Message.h>
 #include <asn/rrc/ASN_RRC_DL-DCCH-Message.h>
-#include <asn/rrc/ASN_RRC_PCCH-Message.h> 
+#include <asn/rrc/ASN_RRC_PCCH-Message.h>
 
 #define ACT_TOKEN_NUM 3
 
@@ -61,10 +61,10 @@ public:
   ~Parser() {
     delete inj_act;
   }
-
+  
   void set_inj_act(string act_name);
   void set_inj_msg_data();
-  
+ 
   ChannelType get_ch_type() {
     return inj_act->ch_type;
   }
@@ -87,7 +87,7 @@ public:
   {
     return &inj_act->msg_data;
   }
-
+  
   bool get_chan_state(string chan_string) {
     if(chan_string == "TRUE")
       return true;
