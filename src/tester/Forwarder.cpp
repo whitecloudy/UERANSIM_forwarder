@@ -62,7 +62,7 @@ Forwarder::Forwarder(const std::string GNB_IP,
 {
     false_gnb_sock = Socket::CreateAndBindUdp({ IP, PORT });
     listen_socks.push_back(false_gnb_sock);
-    state_manager.set_testcase("TestCase1.txt");
+    state_manager.set_testcase(std::string("TestCase1.txt"));
 }
 
 int Forwarder::do_work(void)
@@ -71,10 +71,14 @@ int Forwarder::do_work(void)
     uint8_t* rt_buf = new uint8_t[BUFSIZE];
     int recv_size;
     int rt_size;
+    int rt_val;
 
     std::vector<Socket> respond_socks;
     std::vector<Socket> dummy;
     InetAddress recv_addr;
+
+    Socket target_ue_handle_sock, target_gnb_handle_sock;
+    InetAddress target_ue_addr, target_gnb_addr;
 
     while (true)
     {
@@ -117,9 +121,11 @@ int Forwarder::do_work(void)
                     id = addr_sock_pair[addr_sock_pair.size() - 1].ID;
                 }
 
-                std::cout << id << ") UE -> gNB" << std::endl;
+                target_gnb_handle_sock = send_sock;
+                target_gnb_addr = gNB_addr;
+                //std::cout << id << ") UE -> gNB" << std::endl;
 
-                handle_UEs_packet(buffer, recv_size, rt_buf, rt_size);
+                rt_val = handle_UEs_packet(buffer, recv_size, rt_buf, rt_size);
             }
             else //from gNB
             {
@@ -135,11 +141,23 @@ int Forwarder::do_work(void)
                     }
                     assert(("Can't find addr_sock_pair", i != (addr_sock_pair.size() - 1)));
                 }
-                std::cout << id << ") gNB -> UE" << std::endl;
+                //std::cout << id << ") gNB -> UE" << std::endl;
 
-                handle_gNBs_packet(buffer, recv_size, rt_buf, rt_size);
+                target_ue_handle_sock = send_sock;
+                target_ue_addr = send_addr;
+
+                rt_val = handle_gNBs_packet(buffer, recv_size, rt_buf, rt_size);
             }
             send_sock.send(send_addr, rt_buf, recv_size);
+
+            if(rt_val == 5)
+                start_flag = true;
+
+            if(rt_val == 0 && start_flag)
+            {
+                state_manager.change_state();
+                std::cout << state_manager.state << std::endl;
+            } 
         }
     }
 
@@ -164,9 +182,14 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
 
-                if (m.pduType == rls::EPduType::DATA)
+                std::cout << "ue sti : " << m.sti <<std::endl;
+                std::cout << "ue pduId : " << m.pduId <<std::endl;
+
+                if (m.pduType == rls::EPduType::DATA){
                     std::cout << "DATA Message" << std::endl;
-                else if (m.pduType == rls::EPduType::RRC)
+                    rt_size = data_size;
+                    return 5;
+                }else if (m.pduType == rls::EPduType::RRC)
                 {
                     std::cout << "RRC Message" << std::endl;
                     rrc::RrcChannel channel = static_cast<rrc::RrcChannel>(m.payload);
@@ -297,7 +320,6 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
                                                 std::cout << "Receive Protected NAS Message" << std::endl;
                                             }
 
-
                                             break;
                                         }
                                     case ASN_RRC_UL_DCCH_MessageType__c1_PR_locationMeasurementIndication:
@@ -328,24 +350,29 @@ int Forwarder::handle_UEs_packet(const uint8_t buf[], const int data_size, uint8
                             std::cout << "What???" << std::endl;
                     }
                 }
-                break;
+                rt_size = data_size;
+                return 0;
             }
         case rls::EMessageType::PDU_TRANSMISSION_ACK:
-            std::cout << "PDU ack" << std::endl;
-            break;
+            //std::cout << "PDU ack" << std::endl;
+            rt_size = data_size;
+            return 1;
         case rls::EMessageType::HEARTBEAT:
-            std::cout << "Heartbeat" << std::endl;
-            break;
+            //std::cout << "Heartbeat" << std::endl;
+            rt_size = data_size;
+            return 2;
         case rls::EMessageType::HEARTBEAT_ACK:
-            std::cout << "Heartbeat ack" << std::endl;
-            break;
+            //std::cout << "Heartbeat ack" << std::endl;
+            rt_size = data_size;
+            return 3;
         default:
             std::cout << "Why default?" << std::endl;
+            rt_size = data_size;
+            return -1;
     }
 
-    rt_size = data_size;
-    std::cout << "\n\n";
-    return 0;
+    //std::cout << "\n\n";
+    return -2;
 }
 
 
@@ -364,9 +391,15 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
 
                 rls::RlsMessage& ref_msg = *msg;
                 auto& m = (rls::RlsPduTransmission&)ref_msg;
+
+                std::cout << "gNB sti : " << m.sti <<std::endl;
+                std::cout << "gNB pduId : " << m.pduId <<std::endl;
                 if (m.pduType == rls::EPduType::DATA)
+                {
                     std::cout << "DATA Message" << std::endl;
-                else if (m.pduType == rls::EPduType::RRC)
+                    rt_size = data_size;
+                    return 5;
+                }else if (m.pduType == rls::EPduType::RRC)
                 {
                     std::cout << "RRC Message" << std::endl;
                     rrc::RrcChannel channel = static_cast<rrc::RrcChannel>(m.payload);
@@ -520,22 +553,26 @@ int Forwarder::handle_gNBs_packet(const uint8_t buf[], const int data_size, uint
                             std::cout << "What???" << std::endl;
                     }
                 }
-                break;
+                rt_size = data_size;
+                return 0;
             }
         case rls::EMessageType::PDU_TRANSMISSION_ACK:
-            std::cout << "PDU ack" << std::endl;
-            break;
+            //std::cout << "PDU ack" << std::endl;
+            rt_size = data_size;
+            return 1;
         case rls::EMessageType::HEARTBEAT:
-            std::cout << "Heartbeat" << std::endl;
-            break;
+            //std::cout << "Heartbeat" << std::endl;
+            rt_size = data_size;
+            return 2;
         case rls::EMessageType::HEARTBEAT_ACK:
-            std::cout << "Heartbeat ack" << std::endl;
-            break;
+            //std::cout << "Heartbeat ack" << std::endl;
+            rt_size = data_size;
+            return 3;
         default:
             std::cout << "Why default?" << std::endl;
+            return -1;
     }
-    std::cout << "\n\n";
-    rt_size = data_size;
-    return 0;
+    //std::cout << "\n\n";
+    return -2;
 }
 

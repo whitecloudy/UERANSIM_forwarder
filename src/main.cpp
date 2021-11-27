@@ -21,6 +21,7 @@ int main(int argc, char ** argv)
 
     StateManager stateManager;
     stateManager.set_testcase("TestCase1.txt");
+
 //    Forwarder forwarder(GNB_ADDR, GNB_PORT, IP_ADDR, PORT);
 //
 //    forwarder.do_work();
