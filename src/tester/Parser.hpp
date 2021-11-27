@@ -11,13 +11,14 @@
 #include <asn/rrc/ASN_RRC_DL-DCCH-Message.h>
 #include <asn/rrc/ASN_RRC_PCCH-Message.h> 
 
-#define TOKEN_NUM 3
+#define ACT_TOKEN_NUM 3
 
 using namespace std;
 
 enum ReleaseType {SUSPEND};
 enum ChannelType {DCCH, CCCH, PCCH};
 enum DirectionType {UL, DL};
+enum ChanType {UB, BU};
 
 static set<string> dcch_ul_set = {"rrc_sm_complete", "rrc_setup_complete"};
 static set<string> dcch_dl_set = {"rrc_release_suspend", "rrc_release", "rrc_sm_command"};
@@ -86,6 +87,29 @@ public:
   {
     return &inj_act->msg_data;
   }
+
+  bool get_chan_state(string chan_string) {
+    if(chan_string == "TRUE")
+      return true;
+    else
+      return false;
+  }
+
+  /*  
+  bool get_chanUB_state(string chan_string) {
+    if(chan_string == "TRUE")
+      return true;
+    else
+      return false;
+  }
+  
+  bool get_chanBU_state(string chan_string) {
+    if(chan_string == "TRUE")
+      return true;
+    else
+      return false;
+  }
+  */
 
   void record_recv_msg_data(string data_name, uint64_t data_value); 
   string set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string s);

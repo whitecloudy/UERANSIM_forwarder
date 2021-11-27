@@ -1,9 +1,9 @@
 #include "Parser.hpp"
 
 Parser::Action::Action(string act_name) {
-  string token[TOKEN_NUM];
+  string token[ACT_TOKEN_NUM];
 
-  for(int i=0; i<TOKEN_NUM; i++)
+  for(int i=0; i<ACT_TOKEN_NUM; i++)
   {
     size_t pos = act_name.find("_");
 
@@ -13,7 +13,7 @@ Parser::Action::Action(string act_name) {
       break;
     }
 
-    if(i == TOKEN_NUM - 1)
+    if(i == ACT_TOKEN_NUM - 1)
       token[i] = act_name;
     else
     {
