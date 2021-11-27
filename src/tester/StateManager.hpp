@@ -1,5 +1,5 @@
-#ifndef __STATEMANAGER__
-#define __STATEMANAGER__
+#ifndef __STATE_MANAGER__
+#define __STATE_MANAGER__
 
 #include <string>
 #include <map>
@@ -26,4 +26,5 @@ public:
 
     State_type_t state = Listen_e;
 };
+
 #endif
