@@ -2,6 +2,7 @@
 
 string dataset[1000];
 int current_stage = 1;
+int loop_idx = 0;
 
 void
 StateManager::set_testcase(string filepath) {
@@ -48,7 +49,8 @@ StateManager::set_testcase(string filepath) {
             pos = line.find("Loop");
             if (pos != string::npos) {
                 cout << line << endl;
-                stage += line;
+                // stage += line;
+                loop_idx = idx + 1;
             }
         }
         cout << line << endl;
