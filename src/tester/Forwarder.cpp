@@ -40,6 +40,8 @@
 #include <asn/rrc/ASN_RRC_ULInformationTransfer-IEs.h>
 #include <asn/rrc/ASN_RRC_ULInformationTransfer.h>
 
+#include "RrcMsgMaker.hpp"
+
 #include "gnb/gnb_msg_handler.hpp"
 #include "ue/ue_msg_handler.hpp"
 
@@ -157,6 +159,9 @@ int Forwarder::do_work(void)
             {
                 state_manager.change_state();
                 std::cout << state_manager.state << std::endl;
+
+                //target_ue_handle_sock.send(target_ue_addr, msg.data(), static_cast<size_t>(msg.length()));
+                
             } 
         }
     }

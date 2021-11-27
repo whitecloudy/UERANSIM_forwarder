@@ -98,10 +98,6 @@ class Forwarder
         OctetString makeRrcMessage(ASN_RRC_UL_CCCH1_Message *msg, uint64_t sti, uint32_t pduId);
         OctetString makeRrcMessage(ASN_RRC_UL_DCCH_Message *msg, uint64_t sti, uint32_t pduId);
 
-
-
-
-
 };
 
 static ASN_RRC_UL_CCCH_Message *ConstructSetupRequest(ASN_RRC_InitialUE_Identity_t initialUeId,ASN_RRC_EstablishmentCause_t establishmentCause);
