@@ -61,8 +61,6 @@ public:
     delete inj_act;
   }
 
-  void set_inj_act(string act_name);
-  void set_inj_msg_data();
   
   ChannelType get_ch_type() {
     return inj_act->ch_type;
@@ -87,6 +85,8 @@ public:
     return &inj_act->msg_data;
   }
 
+  void set_inj_act(string act_name);
+  void set_inj_msg_data();
   void record_recv_msg_data(string data_name, uint64_t data_value); 
   string set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string s);
 

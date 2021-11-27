@@ -1,3 +1,6 @@
+#ifndef __STATE_MANAGER__
+#define __STATE_MANAGER__
+
 #include <string>
 #include <map>
 #include <iostream>
@@ -23,3 +26,5 @@ public:
 
     State_type_t state = Listen_e;
 };
+
+#endif
