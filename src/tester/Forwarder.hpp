@@ -10,6 +10,7 @@
 #include <utils/nts.hpp>
 #include "Forwarder_Nts.hpp"
 #include "Forwarder_Message.hpp"
+#include "Parser.hpp"
 
 class Forwarder
 {
@@ -35,6 +36,10 @@ class Forwarder
         std::vector<struct addr_n_sock> addr_sock_pair;
         
         InetAddress gNB_addr;
+
+        Parser act_parser();
+        StateManager state_manager();
+
 
     public:
         Forwarder(const std::string GNB_IP, 

@@ -5,6 +5,9 @@
 // The software and all associated files are licensed under GPL-3.0
 // and subject to the terms and conditions defined in LICENSE file.
 //
+//
+#ifndef __GNB_NTS__
+#define __GNB_NTS__
 
 #pragma once
 
@@ -308,3 +311,5 @@ struct NmGnbCliCommand : NtsMessage
 };
 
 } // namespace nr::gnb
+
+#endif

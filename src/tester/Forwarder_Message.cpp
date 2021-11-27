@@ -112,6 +112,7 @@ static ASN_RRC_UL_CCCH_Message *ConstructSetupRequest(ASN_RRC_InitialUE_Identity
 }
 
 
+/*
 void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg, Socket send_sock, InetAddress recv_addr)
 {
     OctetString pdu = rrc::encode::EncodeS(asn_DEF_ASN_RRC_UL_CCCH_Message, msg);
@@ -134,7 +135,7 @@ void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg, Socket send_sock, 
     new_m->pduId = 0;
     new_m->data = std::move(m->pdu);
     */
-
+    /*
     //
     //rls::RlsPduTransmission new_msg{m_shCtx->sti};
     rls::RlsPduTransmission new_msg{utils::Random64()};
@@ -150,7 +151,9 @@ void sendRrcMessage(int cellId, ASN_RRC_UL_CCCH_Message *msg, Socket send_sock, 
 
 
 }
+*/
 
+/*
 void startConnectionEstablishment(ASN_RRC_InitialUE_Identity_t m_initialId, ASN_RRC_EstablishmentCause m_establishmentCause, Socket send_sock, InetAddress recv_addr)
 {
     int activeCell = 1;
@@ -159,7 +162,7 @@ void startConnectionEstablishment(ASN_RRC_InitialUE_Identity_t m_initialId, ASN_
     if (m_initialId.present == ASN_RRC_InitialUE_Identity_PR_NOTHING)
     {
         printf("dfdsf\n");
-        m_initialId.present = ASN_RRC_InitialUE_Identity_PR_randomValue;
+        //m_initialId.present = ASN_RRC_InitialUE_Identity_PR_randomValue;
         asn::SetBitStringLong<39>(static_cast<int64_t>(utils::Random64()), m_initialId.choice.randomValue);
     }
     //
@@ -172,5 +175,5 @@ void startConnectionEstablishment(ASN_RRC_InitialUE_Identity_t m_initialId, ASN_
     sendRrcMessage(activeCell, rrcSetupRequest, send_sock, recv_addr);
     asn::Free(asn_DEF_ASN_RRC_UL_CCCH_Message, rrcSetupRequest);
 }
-
+*/
 

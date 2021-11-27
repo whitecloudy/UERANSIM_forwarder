@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/main.dir/src/main.cpp.o -o main  -lpthread src/asn/rrc/libasn-rrc.a src/asn/ngap/libasn-ngap.a src/lib/libcommon-lib.a src/tester/libtester.a src/lib/libcommon-lib.a src/asn/rrc/libasn-rrc.a src/asn/ngap/libasn-ngap.a src/asn/asn1c/libasn-asn1c.a src/utils/libutils.a src/ext/libext.a -lsctp 
