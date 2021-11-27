@@ -59,6 +59,8 @@ class Forwarder
         Parser act_parser;
         StateManager state_manager;
 
+        bool start_flag = false;
+
     public:
         Forwarder(const std::string GNB_IP, 
                 const uint16_t GNB_PORT,
@@ -81,6 +83,16 @@ class Forwarder
         int handle_rrc_sm_complete(const ASN_RRC_SecurityModeComplete &msg);
         int handle_rrc_resume_request(const ASN_RRC_RRCResumeRequest &msg);
         int handle_rrc_setup_complete(const ASN_RRC_RRCSetupComplete &msg);
+
+    private:
+        void makeRrcMessage(ASN_RRC_BCCH_BCH_Message *msg);
+        void makeRrcMessage(ASN_RRC_BCCH_DL_SCH_Message *msg);
+        void makeRrcMessage(int ueId, ASN_RRC_DL_CCCH_Message *msg);
+        void makeRrcMessage(int ueId, ASN_RRC_DL_DCCH_Message *msg);
+        void makeRrcMessage(ASN_RRC_PCCH_Message *msg);
+
+
+
 
 
 };
