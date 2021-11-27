@@ -9,7 +9,7 @@
 #include <asn/rrc/ASN_RRC_BCCH-DL-SCH-Message.h>
 #include <asn/rrc/ASN_RRC_DL-CCCH-Message.h>
 #include <asn/rrc/ASN_RRC_DL-DCCH-Message.h>
-#include <asn/rrc/ASN_RRC_PCCH-Message.h> 
+#include <asn/rrc/ASN_RRC_PCCH-Message.h>
 
 #define TOKEN_NUM 3
 
