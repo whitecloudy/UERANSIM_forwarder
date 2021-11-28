@@ -1,9 +1,9 @@
 #include "Parser.hpp"
 
 Parser::Action::Action(string act_name) {
-  string token[TOKEN_NUM];
+  string token[ACT_TOKEN_NUM];
 
-  for(int i=0; i<TOKEN_NUM; i++)
+  for(int i=0; i<ACT_TOKEN_NUM; i++)
   {
     size_t pos = act_name.find("_");
 
@@ -13,7 +13,7 @@ Parser::Action::Action(string act_name) {
       break;
     }
 
-    if(i == TOKEN_NUM - 1)
+    if(i == ACT_TOKEN_NUM - 1)
       token[i] = act_name;
     else
     {
@@ -115,6 +115,9 @@ Parser::set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string 
       case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcResumeRequest:
         ret += "rrc_resume_req";
         break;
+      case ASN_RRC_UL_CCCH_MessageType__c1_PR_rrcSetupRequest:
+        ret += "rrc_setup_req";
+        break;
       default:
           cout<<"Error not defined UL_CCCH Message type ID: "<<id<<endl;
     }
@@ -125,6 +128,9 @@ Parser::set_recv_act_string(uint32_t id, ChannelType c, DirectionType d, string 
     {
       case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcSetup:
         ret += "rrc_setup";
+        break;
+      case ASN_RRC_DL_CCCH_MessageType__c1_PR_rrcReject:
+        ret += "rrc_reject";
         break;
       default:
           cout<<"Error not defined DL_CCCH Message type ID: "<<id<<endl;
